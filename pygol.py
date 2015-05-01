@@ -5,6 +5,11 @@ class Gol:
     def __init__(self, cols, rows, size):
         self.is_active = False
         self.in_tick = False
+        self.grid = []
+        self.tick_count = 0
+        self.dead = 0
+        self.alive = 0
+
 
         self.root = Tk()
         self.cols = cols
@@ -20,7 +25,6 @@ class Gol:
         self.lbl_tickno = Label(self.root, text="Round:0")
         self.lbl_alive = Label(self.root, text="Alive:0")
         self.lbl_dead = Label(self.root, text="Dead:0")
-        self.lbl_empty = Label(self.root, text="Empty:0")
 
         self.alive_cell_color = "#00FF00"
         self.dead_cell_color = "#e5e5e5"
@@ -38,8 +42,6 @@ class Gol:
         self.lbl_tickno.pack()
         self.lbl_dead.pack()
         self.lbl_alive.pack()
-        self.lbl_empty.pack()
-
 
         self.root.mainloop()
 
@@ -52,7 +54,8 @@ class Gol:
         self.tick_count = 0
         self.dead = 0
         self.alive = 0
-        self.blank = 0
+
+        self.canvas.delete("all")
 
         for cl in range(self.cols):
             for rw in range(self.rows):
@@ -61,7 +64,7 @@ class Gol:
                 if is_alive == 1:
                     self.grid[cl][rw] = is_alive
                 else:
-                    self.grid[cl][rw] = -1 #empty cell
+                    self.grid[cl][rw] = 0 #empty cell
 
                 if is_alive:
                     color = self.alive_cell_color
@@ -94,13 +97,21 @@ class Gol:
 
     def update_labels(self):
         self.lbl_tickno.config(text="Round:%d" %(self.tick_count))
-        self.lbl_empty.config(text="Empty:%d" %(self.blank))
+        self.lbl_alive.config(text="Alive:%d" %(self.alive))
+        self.lbl_dead.config(text="Dead:%d" %(self.dead))
 
     def tick(self):
         if self.in_tick:
             return
 
         self.in_tick = True
+
+        self.alive = 0
+        self.dead = 0
+
+        self.canvas.delete("all")
+
+        old_grid = self.grid[:]
 
         for cl in range(self.cols):
             for rw in range(self.rows):
@@ -111,7 +122,7 @@ class Gol:
                         nx = cl + x
                         ny = rw + y
                         if (nx >= 0) and (ny >= 0) and (nx < self.rows) and (ny < self.cols) and ((x != 0) or (y != 0)):
-                            if self.grid[nx][ny] == 1:
+                            if old_grid[nx][ny] == 1:
                                 n_alive += 1
 
                 if self.grid[cl][rw] == 1:
@@ -126,14 +137,12 @@ class Gol:
                     if n_alive == 3:
                         self.grid[cl][rw] = 1
 
-                if self.grid[cl][rw] == 1:
+                if self.grid[cl][rw]:
                     color = self.alive_cell_color
-
-                if self.grid[cl][rw] == 0:
+                    self.alive += 1
+                else:
                     color = self.dead_cell_color
-
-                if self.grid[cl][rw] == -1:
-                    color = self.blank_cell_color
+                    self.dead += 1
 
                 x1 = cl * self.size
                 y1 = rw * self.size
@@ -145,7 +154,7 @@ class Gol:
         self.in_tick = False
 
         self.tick_count += 1
-        self.lbl_tickno.config(text="Round:%d" %(self.tick_count))
+        self.update_labels()
 
         if self.is_active:
             self.root.after(10, self.tick)
