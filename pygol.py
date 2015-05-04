@@ -103,7 +103,7 @@ class Gol:
                 self.alive += 1
                 self.dead -= 1
 
-            self.put_rect(cl, rw, color)
+            self.put_rect(rw, cl, color)
             self.update_labels()
 
             if self.alive:
@@ -113,7 +113,7 @@ class Gol:
                 self.btn_start_stop.config(state=DISABLED)
                 self.btn_tick.config(state=DISABLED)
 
-    def put_rect(self, cl, rw, color):
+    def put_rect(self, rw, cl, color):
         x1 = cl * self.size
         y1 = rw * self.size
         x2 = x1 + self.size
@@ -141,7 +141,7 @@ class Gol:
         for rw in range(self.rows):
             for cl in range(self.cols):
                 self.grid[rw][cl] = 0
-                self.put_rect(cl, rw, self.dead_cell_color)
+                self.put_rect(rw, cl, self.dead_cell_color)
                 self.dead += 1
 
         self.update_labels()
@@ -166,7 +166,7 @@ class Gol:
                 else:
                     color = self.dead_cell_color
 
-                self.put_rect(cl, rw, color)
+                self.put_rect(rw, cl, color)
 
         self.update_labels()
 
@@ -241,7 +241,7 @@ class Gol:
                     color = self.dead_cell_color
                     self.dead += 1
 
-                self.put_rect(cl, rw, color)
+                self.put_rect(rw, cl, color)
 
         self.in_tick = False
 
