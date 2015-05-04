@@ -2,14 +2,14 @@ from tkinter import *
 import random
 
 class Gol:
-    def __init__(self, cols, rows, size):
+    def __init__(self, cols=30, rows=30, size=10, tick_delay=10):
         self.is_active = False
         self.in_tick = False
         self.grid = []
         self.tick_count = 0
         self.dead = 0
         self.alive = 0
-
+        self.tick_delay = tick_delay #in ms
 
         self.root = Tk()
         self.cols = cols
@@ -89,7 +89,7 @@ class Gol:
     def start(self):
         self.is_active = True
         self.btn_tick.config(state=DISABLED)
-        self.root.after(0, self.tick)
+        self.root.after(self.tick_delay, self.tick)
 
     def stop(self):
         self.is_active = False
@@ -157,9 +157,8 @@ class Gol:
         self.update_labels()
 
         if self.is_active:
-            self.root.after(10, self.tick)
+            self.root.after(self.tick_delay, self.tick)
 
 
-
-Gol(30, 30, 10)
+Gol(30, 30, 10, 100)
 
