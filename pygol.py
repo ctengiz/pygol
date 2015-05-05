@@ -1,5 +1,6 @@
 from tkinter import *
 import random
+from copy import deepcopy
 
 class Gol:
     def __init__(self, rows=30, cols=30, size=10, tick_delay=10):
@@ -84,7 +85,8 @@ class Gol:
         self.blank_cell_color = "#FFFFFF"
         self.grid_color = "#808080"
 
-        self.init_grid()
+        #self.init_grid()
+        self.clear_grid()
 
         self.root.mainloop()
 
@@ -140,12 +142,20 @@ class Gol:
 
         for rw in range(self.rows):
             for cl in range(self.cols):
+                """
+                if rw == 1 and (cl == 1 or cl == 2 or cl == 3):
+                    self.grid[rw][cl] = 1
+                    self.put_rect(rw, cl, self.alive_cell_color)
+                    self.dead += 1
+                    self.btn_start_stop.config(state=NORMAL)
+                    self.btn_tick.config(state=NORMAL)
+                else:
+                """
                 self.grid[rw][cl] = 0
                 self.put_rect(rw, cl, self.dead_cell_color)
                 self.dead += 1
 
         self.update_labels()
-
 
     def init_grid(self):
         self.clear_grid()
@@ -158,12 +168,9 @@ class Gol:
                     self.grid[rw][cl] = is_alive
                     self.alive += 1
                     self.dead -= 1
-                else:
-                    self.grid[rw][cl] = 0 #empty cell
-
-                if is_alive:
                     color = self.alive_cell_color
                 else:
+                    self.grid[rw][cl] = 0 #empty cell
                     color = self.dead_cell_color
 
                 self.put_rect(rw, cl, color)
@@ -172,7 +179,6 @@ class Gol:
 
         self.btn_start_stop.config(state=NORMAL)
         self.btn_tick.config(state=NORMAL)
-
 
     def start_stop(self):
         if self.is_active:
@@ -208,16 +214,18 @@ class Gol:
 
         self.canvas.delete("all")
 
-        old_grid = self.grid[:]
+        #because slicing does not copy if a list is contained in a list !
+        old_grid = deepcopy(self.grid)
 
         for rw in range(self.rows):
             for cl in range(self.cols):
                 n_alive = 0
 
-                for y in range(-1, 2):
-                    for x in range(-1, 2):
+                for x in range(-1, 2):
+                    for y in range(-1, 2):
                         nx = cl + x
                         ny = rw + y
+
                         if (nx >= 0) and (ny >= 0) and (nx < self.cols) and (ny < self.rows) and ((x != 0) or (y != 0)):
                             if old_grid[ny][nx] == 1:
                                 n_alive += 1
@@ -229,8 +237,7 @@ class Gol:
                     if n_alive > 3:
                         self.grid[rw][cl] = 0
 
-                if self.grid[rw][cl] <= 0:
-                #else:
+                if self.grid[rw][cl] == 0:
                     if n_alive == 3:
                         self.grid[rw][cl] = 1
 
