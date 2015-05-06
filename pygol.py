@@ -1,5 +1,10 @@
-from tkinter import *
 import random
+import json
+
+from tkinter import *
+from tkinter import filedialog
+
+
 from copy import deepcopy
 
 
@@ -8,6 +13,7 @@ class Gol:
         self.is_active = False
         self.in_tick = False
         self.grid = []
+        self.initial_state = []
         self.tick_count = 0
         self.dead = 0
         self.alive = 0
@@ -85,6 +91,16 @@ class Gol:
         self.lbl_dead = Label(self.root, text="Dead:0")
         self.lbl_dead.grid(row=_rw, column=_cl)
 
+        _cl += 3
+        self.btn_save_initial = Button(self.root, text="Save 0", command=self.save_initial)
+        self.btn_save_initial.grid(row=_rw, column=_cl)
+        _cl += 1
+        self.btn_save_current = Button(self.root, text="Save", command=self.save_current)
+        self.btn_save_current.grid(row=_rw, column=_cl)
+        _cl += 1
+        self.btn_load = Button(self.root, text="Load", command=self.load)
+        self.btn_load.grid(row=_rw, column=_cl)
+
         self.alive_cell_color = "#00FF00"
         self.dead_cell_color = "#FFFFFF" #"#e5e5e5"
         self.blank_cell_color = "#FFFFFF"
@@ -148,15 +164,6 @@ class Gol:
 
         for rw in range(self.rows):
             for cl in range(self.cols):
-                """
-                if rw == 1 and (cl == 1 or cl == 2 or cl == 3):
-                    self.grid[rw][cl] = 1
-                    self.put_rect(rw, cl, self.alive_cell_color)
-                    self.dead += 1
-                    self.btn_start_stop.config(state=NORMAL)
-                    self.btn_tick.config(state=NORMAL)
-                else:
-                """
                 self.grid[rw][cl] = 0
                 self.put_rect(rw, cl, self.dead_cell_color)
                 self.dead += 1
@@ -186,6 +193,8 @@ class Gol:
 
         self.btn_start_stop.config(state=NORMAL)
         self.btn_tick.config(state=NORMAL)
+
+        self.initial_state = deepcopy(self.grid)
 
     def start_stop(self):
         if self.is_active:
@@ -264,5 +273,48 @@ class Gol:
 
         if self.is_active:
             self.root.after(self.tick_delay, self.tick)
+
+    def save(self, js):
+        _fname = filedialog.asksaveasfilename(defaultextension=".pygol")
+        if _fname is None:
+            return
+        _wf = open(_fname, 'w')
+        _wf.write(js)
+        _wf.close()
+
+    def save_initial(self):
+        _json_grid = json.dumps(self.initial_state)
+        self.save(_json_grid)
+
+    def save_current(self):
+        _json_grid = json.dumps(self.grid)
+        self.save(_json_grid)
+
+    def load(self):
+        _fname = filedialog.askopenfilename(defaultextension=".pygol")
+        if _fname is None:
+            return
+
+        _rf = open(_fname, "r")
+        _json = _rf.read()
+        _rf.close()
+
+        self.clear_grid()
+        self.grid = json.loads(_json)
+        for rw in range(self.rows):
+            for cl in range(self.cols):
+
+                if self.grid[rw][cl] == 1:
+                    self.alive += 1
+                    self.dead -= 1
+                    color = self.alive_cell_color
+                    self.put_rect(rw, cl, color)
+
+        self.update_labels()
+
+        self.btn_start_stop.config(state=NORMAL)
+        self.btn_tick.config(state=NORMAL)
+
+        self.initial_state = deepcopy(self.grid)
 
 Gol()
