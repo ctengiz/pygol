@@ -21,6 +21,7 @@ class Gol:
         self.seed_ratio = seed_ratio
 
         self.root = Tk()
+        self.root.wm_title("PyGol - Game Of Life")
         self.cols = cols
         self.rows = rows
         self.size = size
@@ -276,7 +277,7 @@ class Gol:
 
     def save(self, js):
         _fname = filedialog.asksaveasfilename(defaultextension=".pygol")
-        if _fname is None:
+        if not(_fname):
             return
         _wf = open(_fname, 'w')
         _wf.write(js)
@@ -292,7 +293,7 @@ class Gol:
 
     def load(self):
         _fname = filedialog.askopenfilename(defaultextension=".pygol")
-        if _fname is None:
+        if not(_fname):
             return
 
         _rf = open(_fname, "r")
