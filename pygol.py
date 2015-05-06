@@ -132,6 +132,7 @@ class Gol:
         self.cols = int(self.edt_cols.get())
         self.rows = int(self.edt_rows.get())
         self.size = int(self.edt_size.get())
+        self.seed_ratio = int(self.edt_seed_ratio.get())
 
         self.canvas.config(width=self.cols*self.size, height=self.rows*self.size)
 
@@ -168,9 +169,10 @@ class Gol:
         for rw in range(self.rows):
             for cl in range(self.cols):
 
-                is_alive = random.randint(0, 1)
-                if is_alive == 1:
-                    self.grid[rw][cl] = is_alive
+                seed_chance = random.randint(1, 100)
+
+                if seed_chance <= self.seed_ratio:
+                    self.grid[rw][cl] = 1
                     self.alive += 1
                     self.dead -= 1
                     color = self.alive_cell_color
