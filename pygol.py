@@ -2,8 +2,9 @@ from tkinter import *
 import random
 from copy import deepcopy
 
+
 class Gol:
-    def __init__(self, rows=30, cols=30, size=10, tick_delay=10):
+    def __init__(self, rows=30, cols=60, size=10, tick_delay=100, seed_ratio=30):
         self.is_active = False
         self.in_tick = False
         self.grid = []
@@ -11,6 +12,7 @@ class Gol:
         self.dead = 0
         self.alive = 0
         self.tick_delay = tick_delay #in ms
+        self.seed_ratio = seed_ratio
 
         self.root = Tk()
         self.cols = cols
@@ -37,12 +39,18 @@ class Gol:
         self.edt_size.insert(0, str(self.size))
         self.edt_size.grid(row=_rw, column=_cl, sticky=W)
         _cl += 1
+        self.lbl_edt_seed_ratio = Label(self.root, text="Seed Ratio")
+        self.lbl_edt_seed_ratio.grid(row=_rw, column=_cl, sticky=E)
+        _cl += 1
+        self.edt_seed_ratio = Entry(self.root, width=4)
+        self.edt_seed_ratio.insert(0, str(self.seed_ratio))
+        self.edt_seed_ratio.grid(row=_rw, column=_cl, sticky=W)
+        _cl += 1
         self.btn_seed = Button(self.root, text="Seed", command=self.init_grid)
         self.btn_seed.grid(row=_rw, column=_cl)
         _cl += 1
-        self.btn_start_stop = Button(self.root, text="Start", command=self.start_stop)
-        self.btn_start_stop.grid(row=_rw, column=_cl)
-
+        self.btn_clear = Button(self.root, text="Clear", command=self.clear_grid)
+        self.btn_clear.grid(row=_rw, column=_cl)
 
         _rw += 1
         _cl = 0
@@ -59,26 +67,23 @@ class Gol:
         self.edt_delay = Entry(self.root, width=4)
         self.edt_delay.insert(0, str(self.tick_delay))
         self.edt_delay.grid(row=_rw, column=_cl, sticky=W)
-        _cl += 1
-        self.btn_clear = Button(self.root, text="Clear", command=self.clear_grid)
-        self.btn_clear.grid(row=_rw, column=_cl)
+        _cl += 3
+        self.btn_start_stop = Button(self.root, text="Start", command=self.start_stop)
+        self.btn_start_stop.grid(row=_rw, column=_cl)
         _cl += 1
         self.btn_tick = Button(self.root, text=">>", command=self.tick)
         self.btn_tick.grid(row=_rw, column=_cl)
 
-
         _rw += 1
+        _cl = 0
         self.lbl_tickno = Label(self.root, text="Round:0")
-        self.lbl_tickno.grid(row=_rw)
-
-        _rw += 1
+        self.lbl_tickno.grid(row=_rw, column=_cl)
+        _cl += 1
         self.lbl_alive = Label(self.root, text="Alive:0")
-        self.lbl_alive.grid(row=_rw)
-
-        _rw += 1
+        self.lbl_alive.grid(row=_rw, column=_cl)
+        _cl += 1
         self.lbl_dead = Label(self.root, text="Dead:0")
-        self.lbl_dead.grid(row=_rw)
-
+        self.lbl_dead.grid(row=_rw, column=_cl)
 
         self.alive_cell_color = "#00FF00"
         self.dead_cell_color = "#FFFFFF" #"#e5e5e5"
@@ -199,9 +204,9 @@ class Gol:
             self.btn_clear.config(state=DISABLED)
 
     def update_labels(self):
-        self.lbl_tickno.config(text="Round:%d" %(self.tick_count))
-        self.lbl_alive.config(text="Alive:%d" %(self.alive))
-        self.lbl_dead.config(text="Dead:%d" %(self.dead))
+        self.lbl_tickno.config(text="Round: %d" %(self.tick_count))
+        self.lbl_alive.config(text="Alive: %d" %(self.alive))
+        self.lbl_dead.config(text="Dead: %d" %(self.dead))
 
     def tick(self):
         if self.in_tick:
@@ -258,6 +263,4 @@ class Gol:
         if self.is_active:
             self.root.after(self.tick_delay, self.tick)
 
-
-Gol(30, 60, 10, 100)
-
+Gol()
