@@ -8,13 +8,21 @@ from copy import deepcopy
 
 
 class Gol:
-    def __init__(self, rows=30, cols=60, size=10, tick_delay=100, seed_ratio=30):
+    def __init__(self, rows=30, cols=60, size=10, tick_delay=100, seed_ratio=30, rule='23/3'):
         self.is_active = False
         self.in_tick = False
 
         self.cols = cols
         self.rows = rows
         self.size = size
+
+        #Rule is defined as S/B notation.
+        #Some well-known rules :
+        #23/3       : Conway's game of life
+        #1234/3     : Mazetric
+        #12345/3    : Maze
+        #For more info : http://www.conwaylife.com/wiki/Cellular_automaton
+        self.rule = rule
 
         self.grid = []
         self.initial_state = []
@@ -23,7 +31,6 @@ class Gol:
         self.alive = 0
         self.tick_delay = tick_delay #in ms
         self.seed_ratio = seed_ratio
-
 
     def init_tk(self):
         self.root = Tk()
@@ -76,7 +83,15 @@ class Gol:
         self.edt_delay = Entry(self.root, width=4)
         self.edt_delay.insert(0, str(self.tick_delay))
         self.edt_delay.grid(row=_rw, column=_cl, sticky=W)
-        _cl += 3
+        _cl += 1
+        self.lbl_edt_rule = Label(self.root, text="Rule")
+        self.lbl_edt_rule.grid(row=_rw, column=_cl, sticky=E)
+        _cl += 1
+        self.edt_rule = Entry(self.root, width=10)
+        self.edt_rule.insert(0, self.rule)
+        self.edt_rule.grid(row=_rw, column=_cl, sticky=W)
+
+        _cl += 1
         self.btn_start_stop = Button(self.root, text="Start", command=self.start_stop)
         self.btn_start_stop.grid(row=_rw, column=_cl)
         _cl += 1
@@ -94,7 +109,7 @@ class Gol:
         self.lbl_dead = Label(self.root, text="Dead:0")
         self.lbl_dead.grid(row=_rw, column=_cl)
 
-        _cl += 3
+        _cl += 4
         self.btn_save_initial = Button(self.root, text="Save 0", command=self.save_initial)
         self.btn_save_initial.grid(row=_rw, column=_cl)
         _cl += 1
@@ -174,6 +189,8 @@ class Gol:
         self.rows = int(self.edt_rows.get())
         self.size = int(self.edt_size.get())
         self.seed_ratio = int(self.edt_seed_ratio.get())
+        self.rule = self.edt_rule.get()
+
         self.tick_count = 0
 
         self.init_grid()
@@ -241,6 +258,10 @@ class Gol:
         #because slicing does not copy if a list is contained in a list !
         old_grid = deepcopy(self.grid)
 
+        _sr, _br = self.rule.split('/')
+        _sr = [int(x) for x in _sr]
+        _br = [int(x) for x in _br]
+
         for rw in range(self.rows):
             for cl in range(self.cols):
                 n_alive = 0
@@ -261,13 +282,10 @@ class Gol:
 
                 if self.grid[rw][cl] == 1:
                     #if cell is alive !
-                    if n_alive < 2:
+                    if not(n_alive in _sr):
                         self.grid[rw][cl] = 0
-                    if n_alive > 3:
-                        self.grid[rw][cl] = 0
-
-                if self.grid[rw][cl] == 0:
-                    if n_alive == 3:
+                else:
+                    if n_alive in _br:
                         self.grid[rw][cl] = 1
 
         self.update_canvas()
