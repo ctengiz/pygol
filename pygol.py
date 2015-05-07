@@ -4,7 +4,6 @@ import json
 from tkinter import *
 from tkinter import filedialog
 
-
 from copy import deepcopy
 
 
