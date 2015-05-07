@@ -12,6 +12,11 @@ class Gol:
     def __init__(self, rows=30, cols=60, size=10, tick_delay=100, seed_ratio=30):
         self.is_active = False
         self.in_tick = False
+
+        self.cols = cols
+        self.rows = rows
+        self.size = size
+
         self.grid = []
         self.initial_state = []
         self.tick_count = 0
@@ -20,12 +25,10 @@ class Gol:
         self.tick_delay = tick_delay #in ms
         self.seed_ratio = seed_ratio
 
+
+    def init_tk(self):
         self.root = Tk()
         self.root.wm_title("PyGol - Game Of Life")
-        self.cols = cols
-        self.rows = rows
-        self.size = size
-
         self.canvas = Canvas(self.root)
         self.canvas.grid(row=0, columnspan=15)
         self.canvas.bind("<Button-1>", self.canvas_click)
@@ -53,10 +56,10 @@ class Gol:
         self.edt_seed_ratio.insert(0, str(self.seed_ratio))
         self.edt_seed_ratio.grid(row=_rw, column=_cl, sticky=W)
         _cl += 1
-        self.btn_seed = Button(self.root, text="Seed", command=self.init_grid)
+        self.btn_seed = Button(self.root, text="Seed", command=self.seed)
         self.btn_seed.grid(row=_rw, column=_cl)
         _cl += 1
-        self.btn_clear = Button(self.root, text="Clear", command=self.clear_grid)
+        self.btn_clear = Button(self.root, text="Clear", command=self.clear_canvas)
         self.btn_clear.grid(row=_rw, column=_cl)
 
         _rw += 1
@@ -107,14 +110,19 @@ class Gol:
         self.blank_cell_color = "#FFFFFF"
         self.grid_color = "#808080"
 
-        #self.init_grid()
-        self.clear_grid()
+    def init_grid(self):
+        self.grid = [[0 for x in range(self.cols)] for y in range(self.rows)]
 
+    def start(self):
+        self.init_grid()
+        self.init_tk()
+
+        self.clear_canvas()
         self.root.mainloop()
 
     def canvas_click(self, e):
-        cl = int(e.x / self.size) + (e.x % self.size > 0) - 1
-        rw = int(e.y / self.size) + (e.y % self.size > 0) - 1
+        cl = int(e.x // self.size)
+        rw = int(e.y // self.size)
         if self.is_active is False:
             if self.grid[rw][cl]:
                 self.grid[rw][cl] = 0
@@ -145,34 +153,40 @@ class Gol:
 
         self.canvas.create_rectangle(x1, y1, x2, y2, fill=color, outline=self.grid_color, tags="cell")
 
-    def clear_grid(self):
-        self.cols = int(self.edt_cols.get())
-        self.rows = int(self.edt_rows.get())
-        self.size = int(self.edt_size.get())
-        self.seed_ratio = int(self.edt_seed_ratio.get())
-
-        self.canvas.config(width=self.cols*self.size, height=self.rows*self.size)
-
-        self.btn_start_stop.config(state=DISABLED)
-        self.btn_tick.config(state=DISABLED)
-
-        self.grid = [[0 for x in range(self.cols)] for y in range(self.rows)]
-        self.tick_count = 0
+    def update_canvas(self):
         self.dead = 0
         self.alive = 0
-
         self.canvas.delete("all")
 
         for rw in range(self.rows):
             for cl in range(self.cols):
-                self.grid[rw][cl] = 0
-                self.put_rect(rw, cl, self.dead_cell_color)
-                self.dead += 1
+                if self.grid[rw][cl]:
+                    color = self.alive_cell_color
+                    self.alive += 1
+                else:
+                    color = self.dead_cell_color
+                    self.dead += 1
 
+                self.put_rect(rw, cl, color)
         self.update_labels()
 
-    def init_grid(self):
-        self.clear_grid()
+    def clear_canvas(self):
+        self.cols = int(self.edt_cols.get())
+        self.rows = int(self.edt_rows.get())
+        self.size = int(self.edt_size.get())
+        self.seed_ratio = int(self.edt_seed_ratio.get())
+        self.tick_count = 0
+
+        self.init_grid()
+
+        self.canvas.config(width=self.cols*self.size, height=self.rows*self.size)
+        self.update_canvas()
+
+        self.btn_start_stop.config(state=DISABLED)
+        self.btn_tick.config(state=DISABLED)
+
+    def seed(self):
+        self.clear_canvas()
 
         for rw in range(self.rows):
             for cl in range(self.cols):
@@ -181,16 +195,10 @@ class Gol:
 
                 if seed_chance <= self.seed_ratio:
                     self.grid[rw][cl] = 1
-                    self.alive += 1
-                    self.dead -= 1
-                    color = self.alive_cell_color
                 else:
                     self.grid[rw][cl] = 0 #empty cell
-                    color = self.dead_cell_color
 
-                self.put_rect(rw, cl, color)
-
-        self.update_labels()
+        self.update_canvas()
 
         self.btn_start_stop.config(state=NORMAL)
         self.btn_tick.config(state=NORMAL)
@@ -243,6 +251,11 @@ class Gol:
                         nx = cl + x
                         ny = rw + y
 
+                        if nx < 0:
+                            nx = self.cols - 1
+                        if ny < 0:
+                            ny = self.rows - 1
+
                         if (nx >= 0) and (ny >= 0) and (nx < self.cols) and (ny < self.rows) and ((x != 0) or (y != 0)):
                             if old_grid[ny][nx] == 1:
                                 n_alive += 1
@@ -258,14 +271,7 @@ class Gol:
                     if n_alive == 3:
                         self.grid[rw][cl] = 1
 
-                if self.grid[rw][cl]:
-                    color = self.alive_cell_color
-                    self.alive += 1
-                else:
-                    color = self.dead_cell_color
-                    self.dead += 1
-
-                self.put_rect(rw, cl, color)
+        self.update_canvas()
 
         self.in_tick = False
 
@@ -300,22 +306,16 @@ class Gol:
         _json = _rf.read()
         _rf.close()
 
-        self.clear_grid()
+        self.clear_canvas()
         self.grid = json.loads(_json)
-        for rw in range(self.rows):
-            for cl in range(self.cols):
 
-                if self.grid[rw][cl] == 1:
-                    self.alive += 1
-                    self.dead -= 1
-                    color = self.alive_cell_color
-                    self.put_rect(rw, cl, color)
-
-        self.update_labels()
+        self.update_canvas()
 
         self.btn_start_stop.config(state=NORMAL)
         self.btn_tick.config(state=NORMAL)
 
         self.initial_state = deepcopy(self.grid)
 
-Gol()
+if __name__ == '__main__':
+    gol = Gol()
+    gol.start()
